@@ -1,0 +1,11 @@
+Each process running inside the container is mapped as a separate process on
+the host.
+
+The pid of a process running inside the container is not the same as that on
+the host.
+
+Experimenation can be performed using:
+  * unshare
+  * lsns
+  Link: https://www.baeldung.com/linux/docker-container-process-host-pid
+
