@@ -32,3 +32,36 @@ The 'S_ISVTX' indicate the presence of sticky directory.
 
 Logic for restricting write/removal of files existing in sticky directories is
 in 'fs/namei.c'.
+
+-------------------------------------------------------------------------------
+
+The protected_regular configuration can be overriden by processes that have
+"CAP_DAC_OVERRIDE" capability.
+
+cat /proc/1999/status | grep CapEff
+ CapEff: 000001ffffffffff
+
+ ❯ capsh --decode=000001ffffffffff
+ 0x000001ffffffffff=cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_module,cap_sys_rawio,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_mknod,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,cap_wake_alarm,cap_block_suspend,cap_audit_read,cap_perfmon,cap_bpf,cap_checkpoint_restore
+
+This capability can be added to containers to make the process execute as root
+on the host with uid as 0.
+
+The logic is present in sycall_linux.go of Kubernetes.
+Usage example for Kubernetes:
+
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: dac-override-pod
+  spec:
+    containers:
+      - name: my-container
+        image: <image_name>
+        securityContext:
+          capabilities:
+            add:
+              - DAC_OVERRIDE
+
+Usage example for Docker:
+  docker run --cap-add=DAC_OVERRIDE -it <image_name>
